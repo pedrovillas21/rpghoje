@@ -154,7 +154,9 @@ export function CharacterProfile({ p }: { p: Personagem }) {
       <section className="mx-auto grid max-w-7xl gap-12 px-4 py-12 sm:px-8 lg:grid-cols-2 lg:gap-16">
         <div>
           <SectionTitle>Atributos</SectionTitle>
-          <ul className="space-y-4">
+          {/* O gatilho fica na lista: a barra começa com largura 0 e o IntersectionObserver
+              não detecta elementos sem área, então ela nunca "entraria na tela". */}
+          <motion.ul initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.3 }} className="space-y-4">
             {p.atributos.map((a, i) => (
               <li key={a.nome}>
                 <div className="mb-1.5 flex justify-between text-sm">
@@ -165,15 +167,13 @@ export function CharacterProfile({ p }: { p: Personagem }) {
                   <motion.div
                     className="h-full origin-left rounded-full"
                     style={{ background: p.cor, width: `${(a.valor / MAX_ATRIBUTO) * 100}%` }}
-                    initial={{ scaleX: 0 }}
-                    whileInView={{ scaleX: 1 }}
-                    viewport={{ once: true, amount: 0.8 }}
+                    variants={{ hidden: { scaleX: 0 }, show: { scaleX: 1 } }}
                     transition={{ duration: 1.1, delay: i * 0.07, ease: [0.2, 0.9, 0.2, 1] }}
                   />
                 </div>
               </li>
             ))}
-          </ul>
+          </motion.ul>
         </div>
 
         <div>
@@ -195,19 +195,23 @@ export function CharacterProfile({ p }: { p: Personagem }) {
                   )}
                 </div>
                 {pw.nivel !== undefined && (
-                  <div className="mt-3 flex gap-1" aria-hidden="true">
+                  <motion.div
+                    initial="hidden"
+                    whileInView="show"
+                    viewport={{ once: true }}
+                    className="mt-3 flex h-1.5 gap-1"
+                    aria-hidden="true"
+                  >
                     {Array.from({ length: 10 }, (_, k) => (
                       <motion.span
                         key={k}
-                        className="h-1.5 flex-1 rounded-full"
+                        className="h-full flex-1 rounded-full"
                         style={{ background: k < pw.nivel! ? p.cor : "rgba(239,230,210,.1)" }}
-                        initial={{ opacity: 0, scaleY: 0 }}
-                        whileInView={{ opacity: 1, scaleY: 1 }}
-                        viewport={{ once: true }}
+                        variants={{ hidden: { opacity: 0, scaleY: 0 }, show: { opacity: 1, scaleY: 1 } }}
                         transition={{ delay: 0.3 + k * 0.04 }}
                       />
                     ))}
-                  </div>
+                  </motion.div>
                 )}
                 {pw.detalhe && <p className="mt-2 text-sm text-washi-dim">{pw.detalhe}</p>}
               </motion.li>
