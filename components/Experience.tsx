@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
-import { flyTo } from "@/lib/flyTo";
+import { motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
+import { flyTo, flyToY } from "@/lib/flyTo";
 import { useEffect, useRef } from "react";
 import { useAudio, useTrack } from "./AudioProvider";
 import { CharacterSelect } from "./CharacterSelect";
@@ -29,10 +29,23 @@ export function Experience() {
     };
   }, [started]);
 
+  // Desce até a frase do mestre, segura um pouco e continua até o monólogo.
+  // Se o usuário rolar no meio, a descida automática para ali.
   const begin = () => {
     start();
     document.documentElement.style.overflow = "";
-    requestAnimationFrame(() => flyTo("monologo", 3.4));
+    requestAnimationFrame(async () => {
+      const sec = document.getElementById("descida");
+      if (!sec) return;
+      const top = sec.getBoundingClientRect().top + window.scrollY;
+      const vh = window.innerHeight;
+      // Ponto em que o progresso da seção é FRASE_PICO (frase inteira na tela).
+      const alvo = top - vh + FRASE_PICO * (sec.offsetHeight + vh);
+      if (!(await flyToY(alvo, 3))) return;
+      await new Promise((r) => setTimeout(r, 2400));
+      if (Math.abs(window.scrollY - alvo) > 40) return;
+      await flyTo("monologo", 2.6);
+    });
   };
 
   return (
@@ -107,17 +120,22 @@ function Intro({ started, onBegin }: { started: boolean; onBegin: () => void }) 
   );
 }
 
+/** Progresso da descida em que a frase do mestre está inteira na tela (onde a descida automática pausa). */
+const FRASE_PICO = 0.54;
+const FRASE = ["Mestre,", "escute", "com", "atenção."];
+
 function Descent() {
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
   const far = useTransform(scrollYProgress, [0, 1], [120, -180]);
   const mid = useTransform(scrollYProgress, [0, 1], [320, -520]);
-  const near = useTransform(scrollYProgress, [0, 1], [700, -1100]);
-  const textOpacity = useTransform(scrollYProgress, [0.3, 0.5, 0.7], [0, 1, 0]);
-  const textScale = useTransform(scrollYProgress, [0.3, 0.7], [0.9, 1.1]);
+  // As nuvens da frente atravessam a tela antes da pausa, deixando a frase livre.
+  const near = useTransform(scrollYProgress, [0, 0.5, 1], [900, -900, -1600]);
+  const textOpacity = useTransform(scrollYProgress, [0.66, 0.76], [1, 0]);
+  const textScale = useTransform(scrollYProgress, [0.34, FRASE_PICO, 0.76], [0.92, 1, 1.12]);
 
   return (
-    <section ref={ref} className="relative h-[170vh] overflow-clip">
+    <section id="descida" ref={ref} className="relative h-[220vh] overflow-clip">
       <motion.div aria-hidden="true" style={{ y: far }} className="absolute inset-x-0 top-[10%] text-[#2a2c38]">
         <Cloud className="absolute left-[-5%] w-[45vw] opacity-80" />
         <Cloud className="absolute top-40 right-[-8%] w-[50vw] opacity-70" />
@@ -126,16 +144,43 @@ function Descent() {
         <Cloud className="absolute left-[20%] w-[55vw]" />
         <Cloud className="absolute top-72 left-[-15%] w-[40vw]" />
       </motion.div>
-      <motion.div
+      <motion.p
         style={{ opacity: textOpacity, scale: textScale }}
-        className="sticky top-[45vh] text-center font-display text-[clamp(1.75rem,5vw,3.5rem)] font-bold"
+        className="sticky top-[42vh] z-10 flex flex-wrap justify-center gap-x-[0.3em] px-4 text-center font-display text-[clamp(2.25rem,7vw,5.5rem)] leading-tight font-extrabold [text-shadow:0_4px_30px_rgba(15,13,12,.9)]"
       >
-        Mestre, escute com atenção.
-      </motion.div>
+        {FRASE.map((w, i) => (
+          <Word key={w} progress={scrollYProgress} from={0.36 + i * 0.035} className={i === 0 ? "text-shu-light" : ""}>
+            {w}
+          </Word>
+        ))}
+      </motion.p>
       <motion.div aria-hidden="true" style={{ y: near }} className="absolute inset-x-0 top-[40%] text-[#d9cfbb]">
         <Cloud className="absolute left-[-10%] w-[70vw] opacity-90" />
         <Cloud className="absolute top-52 right-[-20%] w-[80vw] opacity-95" />
       </motion.div>
     </section>
+  );
+}
+
+/** Palavra que surge (sobe, desfoca → foca) conforme a rolagem passa por `from`. */
+function Word({
+  progress,
+  from,
+  className,
+  children,
+}: {
+  progress: MotionValue<number>;
+  from: number;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const range = [from, from + 0.06];
+  const opacity = useTransform(progress, range, [0, 1]);
+  const y = useTransform(progress, range, ["0.6em", "0em"]);
+  const filter = useTransform(progress, range, ["blur(10px)", "blur(0px)"]);
+  return (
+    <motion.span style={{ opacity, y, filter }} className={`inline-block ${className ?? ""}`}>
+      {children}
+    </motion.span>
   );
 }
