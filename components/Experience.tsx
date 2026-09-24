@@ -5,6 +5,7 @@ import { flyTo, flyToY } from "@/lib/flyTo";
 import { useEffect, useRef } from "react";
 import { useAudio, useTrack } from "./AudioProvider";
 import { CharacterSelect } from "./CharacterSelect";
+import { Depoimento } from "./Depoimento";
 import { Finale } from "./Finale";
 import { Monologue } from "./Monologue";
 import { Cloud, Leaves, Sky } from "./Scenery";
@@ -55,6 +56,7 @@ export function Experience() {
       <Intro started={started} onBegin={begin} />
       <Descent />
       <Monologue />
+      <Depoimento />
       <Finale />
       <CharacterSelect />
       <footer className="relative px-4 pt-10 pb-16 text-center text-sm text-washi-dim">

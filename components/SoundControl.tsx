@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { TRACKS, useAudio } from "./AudioProvider";
 
 export function SoundControl() {
-  const { started, muted, current, start, toggleMute } = useAudio();
+  const { started, muted, current, start, toggleMute, suspended } = useAudio();
 
   return (
     <div className="fixed top-4 right-4 z-50 sm:top-6 sm:right-6">
@@ -25,20 +25,20 @@ export function SoundControl() {
               {[0, 1, 2, 3].map((i) => (
                 <span
                   key={i}
-                  className={`eq-bar block w-[3px] rounded-sm bg-shu-light ${muted ? "[animation-play-state:paused]" : ""}`}
-                  style={{ height: "100%", animationDelay: `${i * 0.15}s`, opacity: muted ? 0.35 : 1 }}
+                  className={`eq-bar block w-[3px] rounded-sm bg-shu-light ${muted || suspended ? "[animation-play-state:paused]" : ""}`}
+                  style={{ height: "100%", animationDelay: `${i * 0.15}s`, opacity: muted || suspended ? 0.35 : 1 }}
                 />
               ))}
             </span>
             <AnimatePresence mode="wait">
               <motion.span
-                key={current + String(muted)}
+                key={current + String(muted) + String(suspended)}
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
                 className="max-w-40 truncate text-washi-dim"
               >
-                {muted ? "Som desligado" : TRACKS[current].titulo}
+                {muted ? "Som desligado" : suspended ? "Pausada no depoimento" : TRACKS[current].titulo}
               </motion.span>
             </AnimatePresence>
           </motion.button>

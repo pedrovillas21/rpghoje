@@ -2,12 +2,13 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
-export type TrackId = "sign" | "orokai" | "ashihira";
+export type TrackId = "sign" | "orokai" | "ashihira" | "kitetsu";
 
 export const TRACKS: Record<TrackId, { src: string; titulo: string }> = {
   sign: { src: "/audio/sign.mp3", titulo: "Sign" },
   orokai: { src: "/audio/orokai.mp3", titulo: "Orochimaru's Theme" },
   ashihira: { src: "/audio/ashihira.mp3", titulo: "Hollow" },
+  kitetsu: { src: "/audio/kitetsu.mp3", titulo: "Torture" },
 };
 
 const VOLUME = 0.7;
@@ -22,6 +23,9 @@ type AudioCtx = {
   play: (id: TrackId) => void;
   setTrack: (id: TrackId) => void;
   toggleMute: () => void;
+  /** true enquanto outra mídia (o vídeo do depoimento) está tocando e a trilha fica em pausa. */
+  suspended: boolean;
+  setSuspended: (on: boolean) => void;
 };
 
 const Ctx = createContext<AudioCtx | null>(null);
@@ -30,12 +34,14 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const [started, setStarted] = useState(false);
   const [muted, setMuted] = useState(false);
   const [current, setCurrent] = useState<TrackId>("sign");
+  const [suspended, setSuspendedState] = useState(false);
   const audios = useRef(new Map<TrackId, HTMLAudioElement>());
   const fades = useRef(new Map<TrackId, number>());
   const startedRef = useRef(false);
   const mutedRef = useRef(false);
   const currentRef = useRef<TrackId>("sign");
   const targetRef = useRef<TrackId | null>(null);
+  const suspendedRef = useRef(false);
 
   const getAudio = useCallback((id: TrackId) => {
     let a = audios.current.get(id);
@@ -85,6 +91,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   }, [fade, getAudio]);
 
   const play = useCallback((id: TrackId) => {
+    suspendedRef.current = false;
+    setSuspendedState(false);
     startedRef.current = true;
     currentRef.current = id;
     setStarted(true);
@@ -101,8 +109,22 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
 
   // Garantia para navegações sem clique (ex.: botão voltar do navegador).
   useEffect(() => {
-    if (startedRef.current) crossfadeTo(current);
+    if (startedRef.current && !suspendedRef.current) crossfadeTo(current);
   }, [current, crossfadeTo]);
+
+  const setSuspended = useCallback((on: boolean) => {
+    if (suspendedRef.current === on) return;
+    suspendedRef.current = on;
+    setSuspendedState(on);
+    if (on) {
+      targetRef.current = null;
+      audios.current.forEach((a, id) => {
+        if (!a.paused) fade(id, 0, () => a.pause());
+      });
+    } else if (startedRef.current) {
+      crossfadeTo(currentRef.current);
+    }
+  }, [crossfadeTo, fade]);
 
   const toggleMute = useCallback(() => {
     mutedRef.current = !mutedRef.current;
@@ -116,7 +138,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <Ctx.Provider value={{ started, muted, current, start, play, setTrack, toggleMute }}>{children}</Ctx.Provider>
+    <Ctx.Provider value={{ started, muted, current, start, play, setTrack, toggleMute, suspended, setSuspended }}>{children}</Ctx.Provider>
   );
 }
 
