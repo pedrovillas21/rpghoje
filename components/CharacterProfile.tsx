@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { personagens, type Personagem } from "@/data/personagens";
-import { useTrack } from "./AudioProvider";
+import { useAudio, useTrack } from "./AudioProvider";
 
 const MAX_ATRIBUTO = 25;
 
@@ -18,6 +18,7 @@ const fadeUp = {
 
 export function CharacterProfile({ p }: { p: Personagem }) {
   useTrack(p.track);
+  const { play } = useAudio();
 
   const idx = personagens.findIndex((x) => x.slug === p.slug);
   const proximo = personagens[(idx + 1) % personagens.length];
@@ -37,6 +38,7 @@ export function CharacterProfile({ p }: { p: Personagem }) {
       <nav className="fixed top-4 left-4 z-50 sm:top-6 sm:left-6">
         <Link
           href="/#personagens"
+          onClick={() => play("sign")}
           className="flex min-h-11 items-center gap-2 rounded-full border border-washi/15 bg-ink/70 px-4 py-2 text-sm backdrop-blur-md hover:border-washi/40"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -306,6 +308,7 @@ export function CharacterProfile({ p }: { p: Personagem }) {
       <section className="mx-auto max-w-7xl px-4 pt-12 pb-24 sm:px-8">
         <Link
           href={`/personagem/${proximo.slug}`}
+          onClick={() => play(proximo.track)}
           className="group flex items-center justify-between gap-6 rounded-xl border border-washi/10 bg-ink-2/80 p-6 transition-colors hover:border-washi/30 sm:p-8"
         >
           <span>

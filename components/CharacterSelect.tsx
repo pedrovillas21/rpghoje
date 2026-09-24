@@ -4,6 +4,7 @@ import { motion, useMotionTemplate, useMotionValue, useReducedMotion, useSpring,
 import Image from "next/image";
 import Link from "next/link";
 import { personagens, type Personagem } from "@/data/personagens";
+import { useAudio } from "./AudioProvider";
 
 export function CharacterSelect() {
   return (
@@ -47,6 +48,7 @@ export function CharacterSelect() {
 }
 
 function TiltCard({ p }: { p: Personagem }) {
+  const { play } = useAudio();
   const reduce = useReducedMotion();
   const mx = useMotionValue(0.5);
   const my = useMotionValue(0.5);
@@ -69,6 +71,7 @@ function TiltCard({ p }: { p: Personagem }) {
   return (
     <Link
       href={`/personagem/${p.slug}`}
+      onClick={() => play(p.track)}
       onPointerMove={reduce ? undefined : onMove}
       onPointerLeave={onLeave}
       className="group block [perspective:1200px]"

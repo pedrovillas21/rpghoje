@@ -18,6 +18,8 @@ type AudioCtx = {
   muted: boolean;
   current: TrackId;
   start: () => void;
+  /** Toca a faixa na hora. Use dentro de um clique: o navegador só libera o play() em gestos do usuário. */
+  play: (id: TrackId) => void;
   setTrack: (id: TrackId) => void;
   toggleMute: () => void;
 };
@@ -32,6 +34,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const fades = useRef(new Map<TrackId, number>());
   const startedRef = useRef(false);
   const mutedRef = useRef(false);
+  const currentRef = useRef<TrackId>("sign");
+  const targetRef = useRef<TrackId | null>(null);
 
   const getAudio = useCallback((id: TrackId) => {
     let a = audios.current.get(id);
@@ -46,39 +50,56 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     return a;
   }, []);
 
+  // Fade por tempo com setInterval: requestAnimationFrame para quando a aba fica oculta
+  // e deixaria o volume travado no meio (ou em zero).
   const fade = useCallback((id: TrackId, to: number, onDone?: () => void) => {
     const a = getAudio(id);
-    cancelAnimationFrame(fades.current.get(id) ?? 0);
+    clearInterval(fades.current.get(id));
     const from = a.volume;
     const t0 = performance.now();
-    const step = (t: number) => {
-      const k = Math.min(1, (t - t0) / FADE_MS);
+    const timer = window.setInterval(() => {
+      const k = Math.min(1, (performance.now() - t0) / FADE_MS);
       a.volume = from + (to - from) * k;
-      if (k < 1) fades.current.set(id, requestAnimationFrame(step));
-      else onDone?.();
-    };
-    fades.current.set(id, requestAnimationFrame(step));
+      if (k >= 1) {
+        clearInterval(timer);
+        onDone?.();
+      }
+    }, 30);
+    fades.current.set(id, timer);
   }, [getAudio]);
 
-  // Chamado dentro do gesto do usuário para que o navegador libere o play().
   const crossfadeTo = useCallback((id: TrackId) => {
+    if (targetRef.current === id) return;
+    targetRef.current = id;
     audios.current.forEach((a, other) => {
       if (other !== id && !a.paused) fade(other, 0, () => a.pause());
     });
     const a = getAudio(id);
-    if (a.paused) a.play().catch(() => {});
+    if (a.paused) {
+      a.play().catch(() => {
+        // Bloqueado pelo navegador: libera nova tentativa no próximo clique.
+        if (targetRef.current === id) targetRef.current = null;
+      });
+    }
     fade(id, VOLUME);
   }, [fade, getAudio]);
 
-  const start = useCallback(() => {
-    if (startedRef.current) return;
+  const play = useCallback((id: TrackId) => {
     startedRef.current = true;
+    currentRef.current = id;
     setStarted(true);
-    crossfadeTo(current);
-  }, [crossfadeTo, current]);
+    setCurrent(id);
+    crossfadeTo(id);
+  }, [crossfadeTo]);
 
-  const setTrack = useCallback((id: TrackId) => setCurrent(id), []);
+  const start = useCallback(() => play(currentRef.current), [play]);
 
+  const setTrack = useCallback((id: TrackId) => {
+    currentRef.current = id;
+    setCurrent(id);
+  }, []);
+
+  // Garantia para navegações sem clique (ex.: botão voltar do navegador).
   useEffect(() => {
     if (startedRef.current) crossfadeTo(current);
   }, [current, crossfadeTo]);
@@ -95,7 +116,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <Ctx.Provider value={{ started, muted, current, start, setTrack, toggleMute }}>{children}</Ctx.Provider>
+    <Ctx.Provider value={{ started, muted, current, start, play, setTrack, toggleMute }}>{children}</Ctx.Provider>
   );
 }
 
