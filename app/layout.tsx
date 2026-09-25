@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Shippori_Mincho_B1, Zen_Kaku_Gothic_New } from "next/font/google";
 import { AudioProvider } from "@/components/AudioProvider";
 import { MotionRoot } from "@/components/MotionRoot";
+import { ScrollCursor } from "@/components/ScrollCursor";
 import { SoundControl } from "@/components/SoundControl";
 import "./globals.css";
 
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <AudioProvider>
           <MotionRoot>
             <SoundControl />
+            <ScrollCursor />
             {children}
           </MotionRoot>
         </AudioProvider>
