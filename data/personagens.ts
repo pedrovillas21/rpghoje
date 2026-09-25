@@ -45,11 +45,16 @@ export const personagens: Personagem[] = [
     cla: "Oromachi",
     idade: 21,
     altura: "1,85 m",
-    vilaOrigem: "Névoa",
+    vilaOrigem: "Som",
     atuacao: "Ordem do Véu Sorridente",
     tendencia: "Nukenin",
     lema: "Desta terra árida — eu farei crescer espinhos.",
-    historia: null,
+    historia: [
+      "Orokai Oromachi, originário da Vila do Som, foi acolhido em seu passado pela Vila das Fontes Termais, onde cresceu e encontrou sua atual parceira, Mikawa.",
+      "Orokai sempre carregou o fardo de ser filho de Orochimaru, o lendário Sannin da Folha. Sempre foi o filho mais jogado de lado pela sua falta de aptidão com habilidades e por não ter nenhuma habilidade fenomenal — para seu pai, ninjas comuns não são úteis, e Orokai era um desses.",
+      "Hoje Orokai se encontra renegado e com uma força que seu pai jamais imaginou. Mostrou-se mais capaz que os outros quando se fala em esforço e determinação para conseguir o que mais queria — uma família que lutasse pela verdadeira paz. Ainda com sua parceira e mais 10 integrantes, eles buscam consertar o mundo, que há muito vem sendo deixado de lado pelos poderosos.",
+      "Longe das ambições egoístas de Orochimaru e das manipulações dos grandes líderes, Orokai encontrou o seu próprio caminho. Ao lado de Mikawa e dos seus companheiros, ele não luta por vingança, mas pela redenção de uma terra esquecida. O filho rejeitado renasceu — e o seu legado será escrito com a paz que o seu pai nunca conseguiu conceber.",
+    ],
     vitais: [
       { nome: "Vitalidade", valor: 167 },
       { nome: "Chakra", valor: 90 },
