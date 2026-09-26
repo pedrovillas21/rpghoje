@@ -279,11 +279,7 @@ export function CharacterProfile({ p }: { p: Personagem }) {
         ) : (
           <motion.div {...fadeUp} className="rounded-xl border border-dashed border-washi/25 p-8 text-center sm:p-12">
             <p className="font-display text-2xl font-bold sm:text-3xl">Pergaminho ainda selado</p>
-            <p className="mt-3 text-washi-dim">
-              {p.slug === "kitetsu"
-                ? "A história do Kitetsu começa a ser escrita na mesa. Mais um motivo para ser sábado."
-                : "A história chega em breve."}
-            </p>
+            <p className="mt-3 text-washi-dim">A história chega em breve.</p>
           </motion.div>
         )}
       </section>

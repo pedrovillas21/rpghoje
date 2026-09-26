@@ -17,9 +17,9 @@ Abra http://localhost:3000.
 - **Motivos do monólogo:** `data/motivos.ts`
 - **Fichas dos personagens:** `data/personagens.ts`
 - **Músicas:** `public/audio/` e o mapa `TRACKS` em `components/AudioProvider.tsx`.
-- **Depoimento do Kenji:** coloque o vídeo em `public/video/kenji.mp4` e troque `video: null` por
-  `video: "/video/kenji.mp4"` em `data/depoimento.ts`. Vídeo em pé ou deitado funciona; a trilha pausa
-  enquanto ele toca. Prefira MP4 (H.264) comprimido, com menos de ~50 MB.
+- **Depoimento do Kenji:** o vídeo fica em `public/video/kenji.mp4` (caminho em `data/depoimento.ts`).
+  Ao clicar, ele se expande até quase a tela cheia e a trilha pausa enquanto ele toca. Vídeo em pé ou
+  deitado funciona. Prefira MP4 (H.264) comprimido, com menos de ~50 MB.
 - **Retratos:** `public/personagens/`
 
 ## Deploy na Vercel
